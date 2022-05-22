@@ -18,35 +18,49 @@ jobs:
           - { os: ubuntu-22.04, fc: gfortran-10 }
           - { os: ubuntu-22.04, fc: gfortran-11 }
           - { os: ubuntu-22.04, fc: gfortran-12 }
-          - { os: ubuntu-22.04, fc: gfortran-11, build-type: coverage }
 
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
-      - name: Set up fpm
-        uses: fortran-lang/setup-fpm@v4
-        with:
-          fpm-version: v0.5.0
-
       - name: Set up Fortran
         uses: tueda/setup-fortran@v0.0.1
         with:
           fortran-compiler: ${{ matrix.fc }}
 
-      - name: Run test
-        if: ${{ matrix.build-type != 'coverage' }}
-        run: fpm test
+      - name: Set up fpm
+        uses: fortran-lang/setup-fpm@v4
+        with:
+          fpm-version: v0.5.0
 
-      - name: Run test (with coverage)
-        if: ${{ matrix.build-type == 'coverage' }}
+      - name: Run test
         run: fpm test
         env:
-          FPM_FFLAGS: -coverage -g -fcheck=bounds -fcheck=array-temps -fbacktrace
+          FPM_FFLAGS: -g -fcheck=bounds -fcheck=array-temps -fbacktrace
 
+  coverage:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+        
+      - name: Set up Fortran
+        uses: tueda/setup-fortran@v0.0.1
+        with:
+          fortran-compiler: gfortran-12
+          
+      - name: Set up fpm
+        uses: fortran-lang/setup-fpm@v4
+        with:
+          fpm-version: v0.5.0
+
+      - name: Run test
+        run: fpm test
+        env:
+          FPM_FFLAGS: --coverage
+          
       - name: Upload coverage report
-        if: ${{ matrix.build-type == 'coverage' }}
         uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
