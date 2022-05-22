@@ -31,29 +31,23 @@ jobs:
           fpm-version: v0.5.0
 
       - name: Set up Fortran
-        uses: tueda/setup-fortran@v1
+        uses: tueda/setup-fortran@v0.0.1
         with:
           fortran-compiler: ${{ matrix.fc }}
 
       - name: Run test
-        if: matrix.build-type != 'coverage'
+        if: ${{ matrix.build-type != 'coverage' }}
         run: fpm test
-        env:
-          FPM_FC: ${{ matrix.fc }}
 
       - name: Run test (with coverage)
-        if: matrix.build-type == 'coverage'
+        if: ${{ matrix.build-type == 'coverage' }}
         run: fpm test
         env:
-          FPM_FC: ${{ matrix.fc }}
           FPM_FFLAGS: -coverage -g -fcheck=bounds -fcheck=array-temps -fbacktrace
 
-      - name: Run gcov
-        if: matrix.build-type == 'coverage'
-        run: $find . -type f -name '*.gcno' -exec $GCOV -pb {} +
-
       - name: Upload coverage report
-        if: matrix.build-type == 'coverage'
-        uses: codecov/codecov-action@v2
+        if: ${{ matrix.build-type == 'coverage' }}
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
+          gcov: true
